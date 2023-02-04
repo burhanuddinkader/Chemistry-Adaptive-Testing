@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "mole"
+    'widget_tweaks',
+    "mole",
+    "quiz",
+    "student"
 ]
 
 MIDDLEWARE = [
@@ -51,6 +54,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CSRF_COOKIE_SECURE=False
 ROOT_URLCONF = 'Tutor.urls'
 
 TEMPLATES = [
@@ -121,6 +125,7 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     	     os.path.join(BASE_DIR, 'static')
 	        ]
+MEDIA_ROOT=os.path.join(BASE_DIR,'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
