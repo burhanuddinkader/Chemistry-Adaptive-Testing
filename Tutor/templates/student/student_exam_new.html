@@ -27,24 +27,6 @@
     <div class="panel-heading">
       <h6 class="panel-title">Courses</h6>
     </div>
-    <!-- <table class="table table-hover" id="dev-table">
-      <thead>
-        <tr>
-
-          <th>Exam Name</th>
-          
-          <th>Take Exam</th>
-        </tr>
-      </thead>
-      {% for t in courses %}
-      <tr>
-
-        <td> {{t.course_name}}</td>
-        
-        <td><a class="btn btn-danger btn-xs" href="{% url 'take-exam' t.id %}"><span class="glyphicon glyphicon-circle-arrow-right"></span></a></td>
-      </tr> 
-      {% endfor %}
-    </table> -->
     <table class="table table-hover" id="dev-table">
       <thead>
         <tr>
@@ -54,16 +36,12 @@
           <th>Take Exam</th>
         </tr>
       </thead>
-      {% if courses %}
-      <tr>
-        <td>Mensuration</td>
-        
-        <td><a class="btn btn-danger btn-xs" href="{% url 'take-exam' courses.0.id %}"><span class="glyphicon glyphicon-circle-arrow-right"></span></a></td>
-      </tr> 
-      {% endif %}
+    
     </table>
   </div>
 
+  <!-- <button type="submit" href="{% url 'exam-summ'%}">Lets Start</button>  New Thing added -->
+  <a href="{% url 'exam-summ'%}">Lets Start</a>
 </div>
 
 <br><br><br><br><br><br>

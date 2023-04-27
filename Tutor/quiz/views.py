@@ -10,13 +10,16 @@ from django.db.models import Q
 from student import models as SMODEL
 from student import forms as SFORM
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 
 
 # Create your views here.
 def home_view(request):
     if request.user.is_authenticated:
         return HttpResponseRedirect('afterlogin')  
-    return render(request,'quiz/index.html')
+    # return render(request,'quiz/index.html')
+    return JsonResponse({'text': 'Just rendering some JSON :)'})
+    
 
 def is_student(user):
     return user.groups.filter(name='STUDENT').exists()
