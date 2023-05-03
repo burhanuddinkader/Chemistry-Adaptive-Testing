@@ -6,15 +6,34 @@ def calculate_total_responses(categories):
     return [sum(category) for category in categories]
 
 
-def calculate_ability_parameter(total_responses, num_categories, num_questions):
-    return math.log(sum(total_responses) / (num_categories * num_questions) / (1 - sum(total_responses) / (num_categories * num_questions)))
+# def calculate_ability_parameter(total_responses, num_categories, num_questions):
+#     return math.log(sum(total_responses) / (num_categories * num_questions) / (1 - sum(total_responses) / (num_categories * num_questions)))
 
+def calculate_ability_parameter(total_responses, num_categories, num_questions):
+    try:
+        return math.log(sum(total_responses) / (num_categories * num_questions) / (1 - sum(total_responses) / (num_categories * num_questions)))
+    except:
+        if(sum(total_responses)==0):
+            return -4
+        else:
+            return 4
+
+
+# def calculate_lesson_difficulty(category_responses, num_questions: int):
+#     try:
+#         return math.log((1 - (sum(category_responses) / num_questions)) / (sum(category_responses) / num_questions))
+#     except:
+#         print("I am -4")
+#         return -4
 
 def calculate_lesson_difficulty(category_responses, num_questions: int):
     try:
         return math.log((1 - (sum(category_responses) / num_questions)) / (sum(category_responses) / num_questions))
     except:
-        return -4
+            if all(response == 0 for response in category_responses):
+                return 4
+            else:
+                return -4
 
 
 def calculate_correctness_prob(a, lesson_difficulty):
@@ -69,17 +88,32 @@ def shortest_path(categories, category_names):
 #             response_lists.append(['E', 'E', 'E', 'E', 'E', 'E'])
 #     return response_lists
 
+# def generate_responses(shortest_path_results: List[Tuple[str, float]]) -> List[Tuple[str, float, List[str]]]:
+#     response_combinations = []
+#     for course_info in shortest_path_results:
+#         course_name = course_info[0]
+#         course_info_factor = course_info[1]
+#         if course_info_factor < 0.05:
+#             response_combinations.append((course_name, course_info_factor, ["E"]*6))
+#         elif course_info_factor < 0.2:
+#             response_combinations.append((course_name, course_info_factor, ["E"]*3 + ["M"]*3))
+#         elif course_info_factor < 0.5:
+#             response_combinations.append((course_name, course_info_factor, ["E"]*2 + ["M"]*2 + ["H"]*2))
+#         else:
+#             response_combinations.append((course_name, course_info_factor, ["E", "M", "H", "E", "M", "H"]))
+#     return response_combinations
+
 def generate_responses(shortest_path_results: List[Tuple[str, float]]) -> List[Tuple[str, float, List[str]]]:
     response_combinations = []
     for course_info in shortest_path_results:
         course_name = course_info[0]
         course_info_factor = course_info[1]
         if course_info_factor < 0.05:
-            response_combinations.append((course_name, course_info_factor, ["E"]*6))
+            response_combinations.append((course_name, course_info_factor, ["E"]*3))
         elif course_info_factor < 0.2:
-            response_combinations.append((course_name, course_info_factor, ["E"]*3 + ["M"]*3))
+            response_combinations.append((course_name, course_info_factor, ["E"]*2 + ["M"]*1))
         elif course_info_factor < 0.5:
-            response_combinations.append((course_name, course_info_factor, ["E"]*2 + ["M"]*2 + ["H"]*2))
+            response_combinations.append((course_name, course_info_factor, ["E"]*1 + ["M"]*1 + ["H"]*1))
         else:
-            response_combinations.append((course_name, course_info_factor, ["E", "M", "H", "E", "M", "H"]))
+            response_combinations.append((course_name, course_info_factor, ["M", "M", "H"]))
     return response_combinations
