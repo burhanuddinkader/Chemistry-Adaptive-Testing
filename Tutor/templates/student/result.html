@@ -55,6 +55,7 @@
   </div>
 </div> -->
 
+
 <div class="container">
   <div class="panel panel-primary">
     <div class="panel-heading">
@@ -73,23 +74,36 @@
             <td>Level {{ forloop.counter }}</td>
             <td>
               <ul>
+                <!-- {% for category in level %}
+                  <span>{{ category }} -></span>
+                {% endfor %} -->
                 {% for category in level %}
-                  <span>{{ category }}{% if category_feedback[forloop.parentloop.counter0][forloop.counter0] %} ({{ category_feedback[forloop.parentloop.counter0][forloop.counter0] }}){% endif %} -></span>
+                  {{ category }}
+                  {% if not forloop.last %}
+                    <span>-></span>
+                  {% endif %}
                 {% endfor %}
+  
               </ul>
             </td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
-    Feedback
-    {% if feedback %}
-      <div>
-        <strong>{{ feedback }}</strong>
-      </div>
-    {% endif %}
+    
+    <p><b>Feedback</b></p>
+    <p> {{ feedback }}</p>
+    {% if comments %}
+    <p><b>Comments:</b></p>
+    <ul>
+      {% for comment in comments %}
+        <li>{{ comment }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
   </div>
 </div>
+
 
 <br><br><br><br><br><br>
 {% endblock content %}

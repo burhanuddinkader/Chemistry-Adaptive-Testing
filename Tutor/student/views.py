@@ -645,7 +645,8 @@ def start_exam_view(request, pk):
                 # return render(request, 'student/start_exam.html', {'course': short_course, 'questions': short_questions})
                 return redirect('start-exam', pk=short_course_id)
             else:
-                return redirect('exam-comp')
+                # return redirect('exam-comp')
+                return redirect('view-result-view')
     else:
         # Render the start_exam.html template with the current course's questions
         print("Outside Else")
@@ -1270,16 +1271,58 @@ def view_result_view(request):
     return render(request,'student/view_result.html',{'courses':courses})
 
 # My result page
+# @login_required(login_url='studentlogin')
+# @user_passes_test(is_student)
+# def view_result(request):
+#     parent_list = [
+#     ["category 1", "category 2", "category 3"],
+#     ["category 1", "category 3"],
+#     ["category 1"]
+# ]
+    
+#     return render(request,'student/result.html',{'courses':parent_list})
+
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)
 def view_result(request):
+    # parent_list = [
+    # ["category 1", "category 2", "category 3"],
+    # ["category 1", "category 3"],
+    # ["category 1"],
+    # ["category 1"]
+    # ]
     parent_list = [
-    ["category 1", "category 2", "category 3"],
-    ["category 1", "category 3"],
-    ["category 1"]
-]
+    ["Triangle", "Equilateral", "Circle","Cone"],
+    ["Circle", "Triangle", "Equilateral"],
+    ["Circle"]
+    ]
+    num_levels = len(parent_list)
+    num_categories = len(parent_list[0])
     
-    return render(request,'student/result.html',{'courses':parent_list})
+    # count the number of times each category was attempted
+    attempts_count = {}
+    for level in range(num_levels):
+        for category in parent_list[level]:
+            if category not in attempts_count:
+                attempts_count[category] = 0
+            attempts_count[category] += 1
+    
+    # determine the feedback based on the number of levels completed
+    if num_levels == 1:
+        feedback = "Brilliant! You have mastered all courses in level 1."
+    elif num_levels == 2:
+        feedback = "Good job! You have completed all courses in level 2."
+    else:
+        feedback = "Keep practicing! It took you {} levels to complete all courses.".format(num_levels)
+    
+    # add comments on courses attempted multiple times
+    comments = []
+    for category in attempts_count:
+        if attempts_count[category] > 1:
+            # comments.append("You had to attempt {} multiple times in different levels.".format(category))
+            comments.append("You have attempted {} multiple times throughout different levels. You may want to practice this category more to improve your understanding.".format(category))
+    
+    return render(request, 'student/result.html', {'feedback': feedback, 'comments': comments,'courses':parent_list})
     
 
 @login_required(login_url='studentlogin')
