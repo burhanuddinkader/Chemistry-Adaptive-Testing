@@ -100,7 +100,7 @@ def shortest_path(categories, category_names):
 #         elif course_info_factor < 0.5:
 #             response_combinations.append((course_name, course_info_factor, ["E"]*2 + ["M"]*2 + ["H"]*2))
 #         else:
-#             response_combinations.append((course_name, course_info_factor, ["E", "M", "H", "E", "M", "H"]))
+#             response_combinations.append((course_name, course_info_factor, ["E", "M", "H", "M", "M", "H"]))
 #     return response_combinations
 
 def generate_responses(shortest_path_results: List[Tuple[str, float]]) -> List[Tuple[str, float, List[str]]]:
