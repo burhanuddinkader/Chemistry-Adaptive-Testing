@@ -514,16 +514,26 @@ shortest_path_courses = []
 short_questions= []
 short_question_sets=[]
 questions=[]
+#parent_list=[]
 
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)
 @csrf_exempt
 def start_exam_view(request, pk):
+    print("outside request session",request.session.get('parent_list', []))
     global shortest_path_courses
     global short_questions
     global short_question_sets
     global questions
 
+    # result=models.Student.objects.prefetch_related("result_set").filter(user_id=request.user.id)
+    # print("RESULT",result)
+    # print("RESULT PAREMT",result.parent_list)
+
+
+    # parent_list = request.session.get('parent_list',[])
+    # print("outside parent list",parent_list)
+    
     current_course = QMODEL.Course.objects.get(pk=pk)
     print(current_course)
     # questions = QMODEL.Question.objects.filter(course=current_course).order_by('?')[:3]
@@ -536,10 +546,10 @@ def start_exam_view(request, pk):
         # if(len(short_question_sets)==1):
         #     questions=short_question_sets.pop(0)
         # questions = short_question_sets[0] 
-    else:
-        print("IN NOrmal")
-        questions = QMODEL.Question.objects.filter(course=current_course).order_by('pk')[:3]
-    print("quests",questions)
+    # else:
+    #     print("IN NOrmal")
+    #     questions = QMODEL.Question.objects.filter(course=current_course).order_by('pk')[:3]
+    print("outside  quests",questions)
 
     if request.method == 'POST':
         # Save the user's answers for the current page of questions
@@ -550,13 +560,13 @@ def start_exam_view(request, pk):
             answer = None
             for user_answer in answers:
                 print("in user")
-                print(answers)
-                print("Mera",user_answer['question_id'],"....",str(question.id))
+                # print(answers)
+                # print("Mera",user_answer['question_id'],"....",str(question.id))
                 if user_answer['question_id'] == str(question.id):
                     print("innnssside")
                     answer = user_answer['answer']
                     break
-            print("answer =",answer,"....", question.answer)
+            # print("answer =",answer,"....", question.answer)
             if answer == question.answer:
                 course_answers.append(1)
             else:
@@ -566,8 +576,8 @@ def start_exam_view(request, pk):
         final_answers.append(course_answers)
         final_course_ids.append(current_course)
         print("final_answers:",final_answers)
-        print("final_course_ids:",final_course_ids)
-
+        print("final_course_ids:",final_course_ids) 
+        
         
         # Check if there's a next course and redirect to its questions or summary page
         # all_courses = list(QMODEL.Course.objects.all())
@@ -584,15 +594,32 @@ def start_exam_view(request, pk):
             next_course = all_courses[current_course_index + 1]
             print("pk",next_course.pk)
             print("next course",next_course)
+            print(type(next_course.pk))
             return redirect('start-exam', pk=next_course.pk)
         else:
             # Store the user's answers for all courses in the session variable
             if 'course_answers' not in request.session:
                 request.session['course_answers'] = []
             request.session['course_answers'].append({'course_id': pk, 'answers': course_answers})
+            if 'parent_list' not in request.session:
+                request.session['parent_list'] = []
+            course_ids = [course.id for course in final_course_ids]
+            request.session['parent_list'].append(course_ids)
+            print("Course.IDs",course_ids)
+            # request.session['parent_list'].append(final_course_ids)
+            # parent_list=request.session.get('parent_list',[])
+            # parent_list.append(final_course_ids)
+            # parent_list.append(final_course_ids.copy())
+            # print("parent_list: ",parent_list)
+            print("parent_list REQUEST SESSION: ",request.session.get('parent_list',[]))
+            # request.session['parent_list'] = parent_list
+            print("request.session:: ",request.session['parent_list'])
             shortest_path_courses = shortest_path(final_answers, final_course_ids)
-            
+            print("Over the error")
             if shortest_path_courses:
+                print("In shortest path: ",request.session.get('parent_list',[]))
+
+                print("outside else OVER ERROR")
                 short_course_id = shortest_path_courses[0][0].id
                 print("short_course_id: ",short_course_id)
                 short_course = QMODEL.Course.objects.get(id=short_course_id)
@@ -620,32 +647,40 @@ def start_exam_view(request, pk):
                     e_count = response_combination[2].count('E')
                     m_count = response_combination[2].count('M')
                     h_count = response_combination[2].count('H')
-                    e_questions = QMODEL.Question.objects.filter(course=response_combination[0].id, difficulty='E').order_by('pk')[:e_count]
-                    print("easy: ",e_questions)
-                    m_questions = QMODEL.Question.objects.filter(course=response_combination[0].id, difficulty='M').order_by('pk')[:m_count]
-                    print("medium: ",m_questions)
-                    h_questions = QMODEL.Question.objects.filter(course=response_combination[0].id, difficulty='H').order_by('pk')[:h_count]
-                    print("hard: ",h_questions)
+                    e_questions = QMODEL.Question.objects.filter(course=response_combination[0].id, difficulty='E').order_by('?')[:e_count]
+                    # print("easy: ",e_questions)
+                    m_questions = QMODEL.Question.objects.filter(course=response_combination[0].id, difficulty='M').order_by('?')[:m_count]
+                    # print("medium: ",m_questions)
+                    h_questions = QMODEL.Question.objects.filter(course=response_combination[0].id, difficulty='H').order_by('?')[:h_count]
+                    # print("hard: ",h_questions)
                     short_questions.extend(list(e_questions))   
                     short_questions.extend(list(m_questions))
                     short_questions.extend(list(h_questions))
-                    print("short_quest: ",short_questions)
+                    # print("short_quest: ",short_questions)
                     random.shuffle(short_questions)
                     short_question_sets.append(short_questions)
-                    print("sets: ",short_question_sets)
+                    # print("sets: ",short_question_sets)
                     short_questions=[]
  
 
                 # random.shuffle(short_questions)
                 # print("list quest: ",short_questions)
-                print("list quest: ",short_question_sets)
+                # print("list quest: ",short_question_sets)
                 # return render(request, 'exam.html', {'questions': short_questions})
+                print("BEFORE FINAL: ",request.session.get('parent_list',[]))
+
                 final_answers.clear()
                 final_course_ids.clear()
+                print("AFTER FINAL: ",request.session.get('parent_list',[]))
                 # return render(request, 'student/start_exam.html', {'course': short_course, 'questions': short_questions})
+                print(type(short_course_id))
+                
                 return redirect('start-exam', pk=short_course_id)
             else:
+                final_answers.clear()
+                final_course_ids.clear()
                 # return redirect('exam-comp')
+                print("Inside else OVER ERROR")
                 return redirect('view-result-view')
     else:
         # Render the start_exam.html template with the current course's questions
@@ -660,6 +695,9 @@ def start_exam_view(request, pk):
             # If there are questions in short_questions, use those questions for the current course
             # questions = short_question_sets[0]
             # Clear the short_questions list so that it is not used again by mistake
+            # parent_list = request.session.get('parent_list', [])
+            # print("inside parent list",parent_list)
+            print("inside request session",request.session.get('parent_list', []))
             if(len(short_question_sets)==1):
                 questions = short_question_sets.pop(0)
                 short_question_sets.append(0)
@@ -667,9 +705,23 @@ def start_exam_view(request, pk):
             else:
                 questions = short_question_sets.pop(0)
                 print("lenght 1 nahi hai")
+        else:
+            print("IN NOrmal")
+            questions = QMODEL.Question.objects.filter(course=current_course).order_by('?')[:3]
+        print("inside quests: ",questions)
         # # Render the start_exam.html template with the current course's questions
         return render(request, 'student/start_exam.html', {'course': current_course, 'questions': questions})
         # return render(request, 'student/start_exam.html', {'course': current_course, 'questions': questions})
+
+def delete_session(request):
+    try:
+        del request.session['name']
+        del request.session['password']
+    except KeyError:
+        pass
+    return HttpResponse("<h1>dataflair<br>Session Data cleared</h1>")
+
+
 # final_answers = []
 # final_course_ids = []
 # shortest_path_courses = []
@@ -802,7 +854,8 @@ def calculate_correctness_prob(a, lesson_difficulty):
 
 
 def filter_categories(correctness_prob):
-    return [i for i in range(len(correctness_prob)) if correctness_prob[i] < 0.70]
+
+    return [i for i in range(len(correctness_prob)) if correctness_prob[i] < 0.60]
 
 
 def sort_categories(filtered_categories, category_names, correctness_prob):
@@ -1257,9 +1310,11 @@ def calculate_marks_view(request):
         student = models.Student.objects.get(user_id=request.user.id)
         result = QMODEL.Result()
         result.marks=total_marks
-        result.exam=course  
+        result.exam=course 
         result.student=student
         result.save()
+        # #Syntax
+        
 
         return HttpResponseRedirect('view-result')
         # return render(request,'student/view_result.html',{'course':course})
@@ -1291,12 +1346,23 @@ def view_result(request):
     # ["category 1"],
     # ["category 1"]
     # ]
-    parent_list = [
-    ["Triangle", "Equilateral", "Circle","Cone"],
-    ["Circle", "Triangle", "Equilateral"],
-    ["Circle"]
-    ]
+    # parent_list = [
+    # ["Triangle", "Equilateral", "Circle","Cone"],
+    # ["Circle", "Triangle", "Equilateral"],
+    # ["Circle"]
+    # ]
+    print("IN RESUKT VIEEW")
+    parent_list= request.session.get('parent_list', [])
+    # print(parent_list)
+    final_course_ids = [[QMODEL.Course.objects.get(id=course_id) for course_id in course_ids] for course_ids in parent_list]
+    print(final_course_ids)
+    parent_list=final_course_ids
+    print("NEW PARENT LIST",parent_list)
+
     num_levels = len(parent_list)
+    if(num_levels==0):
+        return render(request, 'student/no_result.html')
+
     num_categories = len(parent_list[0])
     
     # count the number of times each category was attempted

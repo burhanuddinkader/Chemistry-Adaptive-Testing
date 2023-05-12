@@ -21,6 +21,7 @@ from django.contrib.auth.views import LogoutView,LoginView
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('', include("mole.urls"))
+    path('__debug__/', include('debug_toolbar.urls')),
     path('student/',include('student.urls')),
 
 

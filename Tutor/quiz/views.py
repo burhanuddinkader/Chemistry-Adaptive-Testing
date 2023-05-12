@@ -18,7 +18,10 @@ def home_view(request):
     if request.user.is_authenticated:
         return HttpResponseRedirect('afterlogin')  
     # return render(request,'quiz/index.html')
-    return JsonResponse({'text': 'Just rendering some JSON :)'})
+    # return JsonResponse({'text': 'Just rendering some JSON :)'})
+    return render(request,'quiz/index.html')
+
+
     
 
 def is_student(user):

@@ -20,4 +20,5 @@ path('view-result', views.view_result_view,name='view-result'),
 path('view-result-view', views.view_result,name='view-result-view'), # my result
 path('check-marks/<int:pk>', views.check_marks_view,name='check-marks'),
 path('student-marks', views.student_marks_view,name='student-marks'),
+path("delete", views.delete_session,name="dlt_session")
 ]   
