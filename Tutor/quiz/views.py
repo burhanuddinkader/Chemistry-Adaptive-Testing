@@ -11,6 +11,8 @@ from student import models as SMODEL
 from student import forms as SFORM
 from django.contrib.auth.models import User
 from django.http import JsonResponse
+from quiz import models as QMODEL 
+import json, math
 
 
 # Create your views here.
@@ -156,18 +158,47 @@ def admin_view_student_marks_view(request):
     students= SMODEL.Student.objects.all()
     return render(request,'quiz/admin_view_student_marks.html',{'students':students})
 
-@login_required(login_url='adminlogin')
-def admin_view_marks_view(request,pk):
-    courses = models.Course.objects.all()
-    response =  render(request,'quiz/admin_view_marks.html',{'courses':courses})
-    response.set_cookie('student_id',str(pk))
-    return response
+# @login_required(login_url='adminlogin')
+# def admin_view_marks_view(request,pk):
+#     courses = models.Course.objects.all()
+#     response =  render(request,'quiz/admin_view_marks.html',{'courses':courses})
+#     response.set_cookie('student_id',str(pk))
+#     return response
 
 @login_required(login_url='adminlogin')
 def admin_check_marks_view(request,pk):
-    course = models.Course.objects.get(id=pk)
-    student_id = request.COOKIES.get('student_id')
-    student= SMODEL.Student.objects.get(id=student_id)
+    print("IN RESUKT VIEEW")
 
-    results= models.Result.objects.all().filter(exam=course).filter(student=student)
-    return render(request,'quiz/admin_check_marks.html',{'results':results})
+    result=QMODEL.Result.objects.get(id=pk)
+    parent_list=result.parent_list
+    num_levels = len(parent_list)
+    if(num_levels==0):
+        return render(request, 'student/no_result.html')
+
+    num_categories = len(parent_list[0])
+    
+    # count the number of times each category was attempted
+    attempts_count = {}
+    for level in range(num_levels):
+        for category in parent_list[level]:
+            if category not in attempts_count:
+                attempts_count[category] = 0
+            attempts_count[category] += 1
+    
+    # determine the feedback based on the number of levels completed
+    if num_levels == 1:
+        feedback = "Brilliant! You have mastered all courses in level 1."
+    elif num_levels == 2:
+        feedback = "Good job! You have completed all courses in level 2."
+    else:
+        feedback = "Keep practicing! It took you {} levels to complete all courses.".format(num_levels)
+    
+    # add comments on courses attempted multiple times
+    comments = []
+    for category in attempts_count:
+        if attempts_count[category] > 1:
+            # comments.append("You had to attempt {} multiple times in different levels.".format(category))
+            comments.append("You have attempted {} multiple times throughout different levels. You may want to practice this category more to improve your understanding.".format(category))
+    
+    return render(request, 'quiz/result.html', {'feedback': feedback, 'comments': comments,'courses':parent_list})
+

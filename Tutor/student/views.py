@@ -681,7 +681,16 @@ def start_exam_view(request, pk):
                 final_course_ids.clear()
                 # return redirect('exam-comp')
                 print("Inside else OVER ERROR")
-                return redirect('view-result-view')
+                student = models.Student.objects.get(user_id=request.user.id)
+                res_list=request.session.get('parent_list',[])
+                print("RESULT_LIST",res_list)
+                result = QMODEL.Result()
+                result.student=student
+                result.parent_list=res_list
+                result.save()
+                print("Result is saved")
+                del request.session['parent_list']
+                return redirect('check-result')
     else:
         # Render the start_exam.html template with the current course's questions
         print("Outside Else")
@@ -855,7 +864,7 @@ def calculate_correctness_prob(a, lesson_difficulty):
 
 def filter_categories(correctness_prob):
 
-    return [i for i in range(len(correctness_prob)) if correctness_prob[i] < 0.60]
+    return [i for i in range(len(correctness_prob)) if correctness_prob[i] < 0.40]
 
 
 def sort_categories(filtered_categories, category_names, correctness_prob):
@@ -1319,11 +1328,11 @@ def calculate_marks_view(request):
         return HttpResponseRedirect('view-result')
         # return render(request,'student/view_result.html',{'course':course})
     
-@login_required(login_url='studentlogin')
-@user_passes_test(is_student)
-def view_result_view(request):
-    courses=QMODEL.Course.objects.all()
-    return render(request,'student/view_result.html',{'courses':courses})
+# @login_required(login_url='studentlogin')
+# @user_passes_test(is_student)
+# def view_result_view(request):
+#     courses=QMODEL.Course.objects.all()
+#     return render(request,'student/view_result.html',{'courses':courses})
 
 # My result page
 # @login_required(login_url='studentlogin')
@@ -1337,9 +1346,66 @@ def view_result_view(request):
     
 #     return render(request,'student/result.html',{'courses':parent_list})
 
+# @login_required(login_url='studentlogin')
+# @user_passes_test(is_student)
+# def view_result(request):
+#     # parent_list = [
+#     # ["category 1", "category 2", "category 3"],
+#     # ["category 1", "category 3"],
+#     # ["category 1"],
+#     # ["category 1"]
+#     # ]
+#     # parent_list = [
+#     # ["Triangle", "Equilateral", "Circle","Cone"],
+#     # ["Circle", "Triangle", "Equilateral"],
+#     # ["Circle"]
+#     # ]
+#     student = models.Student.objects.get(user_id=request.user.id)
+#     result= QMODEL.Result.objects.filter(student=student)
+#     print("RESULT QUERY SET",result)
+#     print("RESULT FROM DATABASE: ",result.last().parent_list)
+#     print("IN RESUKT VIEEW")
+#     parent_list= request.session.get('parent_list', [])
+#     # print(parent_list)
+#     final_course_ids = [[QMODEL.Course.objects.get(id=course_id) for course_id in course_ids] for course_ids in parent_list]
+#     print(final_course_ids)
+#     parent_list=final_course_ids
+#     print("NEW PARENT LIST",parent_list)
+
+#     num_levels = len(parent_list)
+#     if(num_levels==0):
+#         return render(request, 'student/no_result.html')
+
+#     num_categories = len(parent_list[0])
+    
+#     # count the number of times each category was attempted
+#     attempts_count = {}
+#     for level in range(num_levels):
+#         for category in parent_list[level]:
+#             if category not in attempts_count:
+#                 attempts_count[category] = 0
+#             attempts_count[category] += 1
+    
+#     # determine the feedback based on the number of levels completed
+#     if num_levels == 1:
+#         feedback = "Brilliant! You have mastered all courses in level 1."
+#     elif num_levels == 2:
+#         feedback = "Good job! You have completed all courses in level 2."
+#     else:
+#         feedback = "Keep practicing! It took you {} levels to complete all courses.".format(num_levels)
+    
+#     # add comments on courses attempted multiple times
+#     comments = []
+#     for category in attempts_count:
+#         if attempts_count[category] > 1:
+#             # comments.append("You had to attempt {} multiple times in different levels.".format(category))
+#             comments.append("You have attempted {} multiple times throughout different levels. You may want to practice this category more to improve your understanding.".format(category))
+    
+#     return render(request, 'student/result.html', {'feedback': feedback, 'comments': comments,'courses':parent_list})
+
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)
-def view_result(request):
+def view_result(request,pk):
     # parent_list = [
     # ["category 1", "category 2", "category 3"],
     # ["category 1", "category 3"],
@@ -1351,20 +1417,36 @@ def view_result(request):
     # ["Circle", "Triangle", "Equilateral"],
     # ["Circle"]
     # ]
+    # student = models.Student.objects.get(user_id=request.user.id)
+    # result= QMODEL.Result.objects.filter(student=student)
+    # print("RESULT QUERY SET",result)
+    # print("RESULT FROM DATABASE: ",result.last().parent_list)
     print("IN RESUKT VIEEW")
-    parent_list= request.session.get('parent_list', [])
-    # print(parent_list)
-    final_course_ids = [[QMODEL.Course.objects.get(id=course_id) for course_id in course_ids] for course_ids in parent_list]
-    print(final_course_ids)
-    parent_list=final_course_ids
-    print("NEW PARENT LIST",parent_list)
-
+    # parent_list= request.session.get('parent_list', [])
+    # # print(parent_list)
+    # final_course_ids = [[QMODEL.Course.objects.get(id=course_id) for course_id in course_ids] for course_ids in parent_list]
+    # print(final_course_ids)
+    # parent_list=final_course_ids
+    # print("NEW PARENT LIST",parent_list)(
+    result=QMODEL.Result.objects.get(id=pk)
+    parent_list=result.parent_list
     num_levels = len(parent_list)
     if(num_levels==0):
         return render(request, 'student/no_result.html')
 
     num_categories = len(parent_list[0])
-    
+
+#   Changing course ids to course names
+    resultant_list = []
+    for child_list in parent_list:
+        course_names = []
+        for course_id in child_list:
+            course = QMODEL.Course.objects.get(id=course_id)
+            course_names.append(course.course_name)
+        resultant_list.append(course_names)
+    print(parent_list)
+    print(resultant_list)
+
     # count the number of times each category was attempted
     attempts_count = {}
     for level in range(num_levels):
@@ -1388,16 +1470,25 @@ def view_result(request):
             # comments.append("You had to attempt {} multiple times in different levels.".format(category))
             comments.append("You have attempted {} multiple times throughout different levels. You may want to practice this category more to improve your understanding.".format(category))
     
-    return render(request, 'student/result.html', {'feedback': feedback, 'comments': comments,'courses':parent_list})
+    # return render(request, 'student/result.html', {'feedback': feedback, 'comments': comments,'courses':parent_list})
+    return render(request, 'student/result.html', {'feedback': feedback, 'comments': comments,'courses':resultant_list})
     
+
+# @login_required(login_url='studentlogin')
+# @user_passes_test(is_student)
+# def check_marks_view(request,pk):
+#     course=QMODEL.Course.objects.get(id=pk)
+#     student = models.Student.objects.get(user_id=request.user.id)
+#     results= QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
+#     return render(request,'student/check_marks.html',{'results':results})
 
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)
-def check_marks_view(request,pk):
-    course=QMODEL.Course.objects.get(id=pk)
+def check_result(request):
     student = models.Student.objects.get(user_id=request.user.id)
-    results= QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
-    return render(request,'student/check_marks.html',{'results':results})
+    results= QMODEL.Result.objects.filter(student=student)
+    print("RESULT QUERY SET",results)
+    return render(request,'student/check_result.html',{'results':results})
 
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)

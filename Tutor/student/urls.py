@@ -16,9 +16,10 @@ path('start-exam/<int:pk>', views.start_exam_view,name='start-exam'),
 path('exam-comp', views.exam_comp_view,name='exam-comp'),
 
 path('calculate-marks', views.calculate_marks_view,name='calculate-marks'),
-path('view-result', views.view_result_view,name='view-result'),
-path('view-result-view', views.view_result,name='view-result-view'), # my result
-path('check-marks/<int:pk>', views.check_marks_view,name='check-marks'),
+# path('view-result', views.view_result_view,name='view-result'),
+path('view-result/<int:pk>', views.view_result,name='view-result'), # my result
+path('check-result', views.check_result,name='check-result'),
+# path('check-marks/<int:pk>', views.check_marks_view,name='check-marks'),
 path('student-marks', views.student_marks_view,name='student-marks'),
 path("delete", views.delete_session,name="dlt_session")
 ]   
